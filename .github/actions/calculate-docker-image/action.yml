@@ -45,6 +45,9 @@ inputs:
   repo-name:
     description: The name of the repository containing the docker-build-dir.
     required: false
+  scw-secret-key:
+    description: Scaleway Secret Key
+    required: true
 
 outputs:
   docker-image:
@@ -116,7 +119,12 @@ runs:
         set -x
 
         login() {
-          aws ecr get-login-password --region us-east-1 | docker login -u AWS --password-stdin "$1"
+          if [[ ${DOCKER_REGISTRY} == *".scw.cloud"* ]]; then
+            # It's a scaleway registry, use scw-secret-key
+            echo "${{ inputs.scw-secret-key }}" | docker login rg.fr-par.scw.cloud -u nologin --password-stdin
+          else
+            aws ecr get-login-password --region us-east-1 | docker login -u AWS --password-stdin "$1"
+          fi
         }
 
         retry () {
@@ -187,7 +195,12 @@ runs:
         set +e
 
         login() {
-          aws ecr get-login-password --region us-east-1 | docker login -u AWS --password-stdin "$1"
+          if [[ ${DOCKER_REGISTRY} == *".scw.cloud"* ]]; then
+            # It's a scaleway registry, use scw-secret-key
+            echo "${{ inputs.scw-secret-key }}" | docker login rg.fr-par.scw.cloud -u nologin --password-stdin
+          else
+            aws ecr get-login-password --region us-east-1 | docker login -u AWS --password-stdin "$1"
+          fi
         }
 
         retry () {
