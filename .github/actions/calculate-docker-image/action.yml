@@ -45,6 +45,11 @@ inputs:
   repo-name:
     description: The name of the repository containing the docker-build-dir.
     required: false
+  docker-build-timeout-minutes:
+    description: The timeout for docker build to succeed.
+    required: true
+    type: number
+    default: 90
   scw-secret-key:
     description: Scaleway Secret Key
     required: true
@@ -229,7 +234,7 @@ runs:
       uses: nick-fields/retry@v3.0.0
       with:
         shell: bash
-        timeout_minutes: 90
+        timeout_minutes: ${{ inputs.docker-build-timeout-minutes }}
         max_attempts: 3
         retry_wait_seconds: 90
         command: |
