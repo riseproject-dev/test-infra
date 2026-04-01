@@ -9,6 +9,9 @@ inputs:
   docker-registry:
     description: The registry to store the image after it is built.
     default: 308535385114.dkr.ecr.us-east-1.amazonaws.com
+  ghcr-pat:
+    description: The GHCR_PAT token to access ghcr.io
+    required: false
 
 runs:
   using: composite
@@ -26,6 +29,8 @@ runs:
           if [[ ${DOCKER_REGISTRY} == *".scw.cloud"* ]]; then
             # It's a scaleway registry, use scw-secret-key
             echo "${{ inputs.scw-secret-key }}" | docker login rg.fr-par.scw.cloud -u nologin --password-stdin
+          elif [[ ${DOCKER_REGISTRY} == "ghcr.io/"* ]]; then
+            echo "${{ inputs.ghcr-pat }}" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
           else
             aws ecr get-login-password --region us-east-1 | docker login -u AWS --password-stdin "$1"
           fi
