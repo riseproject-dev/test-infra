@@ -50,12 +50,6 @@ inputs:
     required: true
     type: number
     default: 90
-  scw-secret-key:
-    description: Scaleway Secret Key
-    required: false
-  ghcr-pat:
-    description: The GHCR_PAT token to access ghcr.io
-    required: false
 
 outputs:
   docker-image:
@@ -127,11 +121,9 @@ runs:
         set -x
 
         login() {
-          if [[ ${DOCKER_REGISTRY} == *".scw.cloud"* ]]; then
-            # It's a scaleway registry, use scw-secret-key
-            echo "${{ inputs.scw-secret-key }}" | docker login rg.fr-par.scw.cloud -u nologin --password-stdin
-          elif [[ ${DOCKER_REGISTRY} == "ghcr.io/"* ]]; then
-            echo "${{ inputs.ghcr-pat }}" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
+          if [[ "$1" == *".scw.cloud"* ]]; then
+            # It's a scaleway registry
+            echo "${{ env.SCW_SECRET_KEY }}" | docker login "$1" -u nologin --password-stdin
           else
             aws ecr get-login-password --region us-east-1 | docker login -u AWS --password-stdin "$1"
           fi
@@ -205,11 +197,9 @@ runs:
         set +e
 
         login() {
-          if [[ ${DOCKER_REGISTRY} == *".scw.cloud"* ]]; then
-            # It's a scaleway registry, use scw-secret-key
-            echo "${{ inputs.scw-secret-key }}" | docker login rg.fr-par.scw.cloud -u nologin --password-stdin
-          elif [[ ${DOCKER_REGISTRY} == "ghcr.io/"* ]]; then
-            echo "${{ inputs.ghcr-pat }}" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
+          if [[ "$1" == *".scw.cloud"* ]]; then
+            # It's a scaleway registry
+            echo "${{ env.SCW_SECRET_KEY }}" | docker login "$1" -u nologin --password-stdin
           else
             aws ecr get-login-password --region us-east-1 | docker login -u AWS --password-stdin "$1"
           fi
@@ -221,12 +211,12 @@ runs:
 
         retry login "${DOCKER_REGISTRY}"
 
-    - name: Login to Docker Hub
-      shell: bash
-      run: |
-        set -eux
-        # It's ok if this steps fails, it would then be an anonymous user like what we used to have
-        aws secretsmanager get-secret-value --secret-id docker_hub_readonly_token | jq --raw-output '.SecretString' | jq -r .docker_hub_readonly_token | docker login --username pytorchbot --password-stdin || true
+    # - name: Login to Docker Hub
+    #   shell: bash
+    #   run: |
+    #     set -eux
+    #     # It's ok if this steps fails, it would then be an anonymous user like what we used to have
+    #     aws secretsmanager get-secret-value --secret-id docker_hub_readonly_token | jq --raw-output '.SecretString' | jq -r .docker_hub_readonly_token | docker login --username pytorchbot --password-stdin || true
 
     - name: Build docker image
       if: ${{ steps.calculate-image.outputs.skip != 'true' && (inputs.always-rebuild || steps.check-image.outputs.rebuild) }}
