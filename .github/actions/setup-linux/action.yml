@@ -6,6 +6,7 @@ runs:
   using: composite
   steps:
     - name: Display EC2 information
+      if: github.repository_owner == 'pytorch'
       shell: bash
       run: |
         set -euo pipefail
@@ -38,6 +39,7 @@ runs:
         fi
 
     - name: Log in to ECR
+      if: github.repository_owner == 'pytorch'
       shell: bash
       env:
         AWS_RETRY_MODE: standard

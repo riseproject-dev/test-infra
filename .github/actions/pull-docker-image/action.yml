@@ -23,7 +23,12 @@ runs:
         set +e
 
         login() {
-          aws ecr get-login-password --region us-east-1 | docker login -u AWS --password-stdin "$1"
+          if [[ "$1" == *".scw.cloud"* ]]; then
+            # It's a scaleway registry
+            echo "${{ env.SCW_SECRET_KEY }}" | docker login "$1" -u nologin --password-stdin
+          else
+            aws ecr get-login-password --region us-east-1 | docker login -u AWS --password-stdin "$1"
+          fi
         }
 
         retry () {
