@@ -106,7 +106,7 @@ runs:
         fi
 
     - name: Login to Container Registry
-      uses: pytorch/test-infra/.github/actions/login-container-registry@main
+      uses: riseproject-dev/test-infra/.github/actions/login-container-registry@build-and-test-on-riscv64
       with:
         docker-registry: ${{ inputs.docker-registry }}
         docker-username: ${{ inputs.docker-username }}
